@@ -1,22 +1,33 @@
-import { useState, useEffect } from "react";
+// src/hooks/useChatMessages.js
+import { useEffect } from 'react';
+import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
+import { getDuoChatContext } from '../utils/chatUtils';
 
-export default function useChatMessages() {
-  const [messages, setMessages] = useState(() => {
-    // Load saved messages from localStorage
-    const saved = localStorage.getItem("chatMessages");
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const sendMessage = (text, sender = "You") => {
-    const newMessage = { id: Date.now(), sender, text };
-    const updatedMessages = [...messages, newMessage];
-    setMessages(updatedMessages);
-    localStorage.setItem("chatMessages", JSON.stringify(updatedMessages));
-  };
-
+const useChatMessages = (db, userId, chatMode, duoPartnerId, setMessages, messagesEndRef, setError) => {
   useEffect(() => {
-    localStorage.setItem("chatMessages", JSON.stringify(messages));
-  }, [messages]);
+    if (!db || !userId || chatMode === 'selection') return;
 
-  return { messages, sendMessage };
-}
+    const chatPath =
+      chatMode === 'public'
+        ? query(collection(db, 'chatMessages'), where('chatContext', '==', 'public'), orderBy('timestamp', 'asc'))
+        : query(
+            collection(db, 'chatMessages'),
+            where('chatContext', '==', getDuoChatContext(userId, duoPartnerId)),
+            orderBy('timestamp', 'asc')
+          );
+
+    const unsubscribe = onSnapshot(chatPath, (snapshot) => {
+      const msgs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setMessages(msgs);
+      if (messagesEndRef?.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, (err) => {
+      setError("Failed to load chat messages.");
+    });
+
+    return () => unsubscribe();
+  }, [db, userId, chatMode, duoPartnerId]);
+};
+
+export default useChatMessages;
