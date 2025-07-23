@@ -4,17 +4,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import SelectionScreen from './components/SelectionScreen';
 import ChatInterface from './components/ChatInterface';
 import ShareModal from './components/ShareModal';
-import { useFirebase } from './hooks/useFirebase';
+import { useFirebase } from './hooks/useFirebase'; // Now returns dummy values (offline mode)
 import useChatMessages from './hooks/useChatMessages';
 import { generateDisplayId, getDuoChatContext } from './utils/chatUtils';
-import { copyToClipboard } from './utils/clipboardUtils';
-import { toggleVoiceInput as voiceInputToggleFunction } from './utils/speechRecognition'; // Renamed import
+import { toggleVoiceInput as voiceInputToggleFunction } from './utils/speechRecognition'; 
 import { emojis } from './constants/emojis';
 
-
 const App = () => {
-  // State variables for Firebase instances, user ID, messages, and input
-  const { db, auth, userId, loading, error, setError } = useFirebase();
+  // State variables (no real Firebase)
+  const { userId, error, setError } = useFirebase(); // db/auth removed
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [imageURL, setImageURL] = useState('');
@@ -24,137 +22,94 @@ const App = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
-  // States for chat mode selection
+  // Chat mode selection
   const [chatMode, setChatMode] = useState('selection'); // 'selection', 'public', 'duo'
   const [duoPartnerId, setDuoPartnerId] = useState('');
   const [tempDuoPartnerInput, setTempDuoPartnerInput] = useState('');
 
-  const messagesEndRef = useRef(null); // Ref for scrolling to the latest message
-  const recognitionRef = useRef(null); // Ref for SpeechRecognition
+  const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
 
-  // Custom hook to manage chat messages
-  useChatMessages(db, userId, chatMode, duoPartnerId, setMessages, messagesEndRef, setError);
+  // Custom hook for managing messages (local only)
+  useChatMessages(null, userId, chatMode, duoPartnerId, setMessages, messagesEndRef, setError);
 
-  // Handle sending a new message (text or image URL)
-  const handleSendMessage = async (e) => {
+  // Send a message (local only now)
+  const handleSendMessage = (e) => {
     e.preventDefault();
-    if ((newMessage.trim() === '' && imageURL.trim() === '') || !db || !userId) return;
+    if (newMessage.trim() === '' && imageURL.trim() === '') return;
 
-    let messageData = {
-      senderId: userId, // Store full UUID
-      timestamp: (await import('firebase/firestore')).serverTimestamp(),
+    const messageData = {
+      senderId: userId,
+      type: imageURL.trim() ? 'image' : 'text',
+      content: imageURL.trim() || newMessage.trim(),
+      timestamp: new Date().toISOString(),
+      chatContext: chatMode === 'public' ? 'public' : getDuoChatContext(userId, duoPartnerId),
     };
 
-    // Determine message type and content
-    if (imageURL.trim() !== '') {
-      messageData.type = 'image';
-      messageData.content = imageURL.trim();
-    } else {
-      messageData.type = 'text';
-      messageData.content = newMessage.trim();
-    }
-
-    if (chatMode === 'public') {
-      messageData.chatContext = 'public';
-    } else if (chatMode === 'duo' && duoPartnerId) {
-      messageData.chatContext = getDuoChatContext(userId, duoPartnerId);
-    } else {
-      setError("Cannot send message: Invalid chat mode or missing partner ID.");
-      return;
-    }
-
-    try {
-      await (await import('firebase/firestore')).addDoc(
-        (await import('firebase/firestore')).collection(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/public/data/chatMessages`),
-        messageData
-      );
-      setNewMessage('');
-      setImageURL(''); // Clear image URL input after sending
-    } catch (err) {
-      console.error("Error sending message:", err);
-      setError("Failed to send message.");
-    }
+    setMessages((prev) => [...prev, messageData]);
+    setNewMessage('');
+    setImageURL('');
   };
 
-  // Handle generating a reply using Gemini API (only for public chat)
+  // Suggest a reply (still uses Gemini API if you add a key)
   const handleSuggestReply = async () => {
-    if (!db || !userId || isGeneratingReply || chatMode !== 'public') return;
+    if (isGeneratingReply || chatMode !== 'public') return;
 
     setIsGeneratingReply(true);
     try {
-      const lastPublicMessages = messages.filter(msg => msg.chatContext === 'public' && msg.type === 'text').slice(-5);
-      const chatHistoryText = lastPublicMessages.map(msg =>
-        `${msg.senderId === userId ? 'You' : (msg.senderId === 'gemini-assistant' ? 'Gemini Assistant' : `User ${generateDisplayId(msg.senderId)}`)}: ${msg.content}`
-      ).join('\n');
+      const lastPublicMessages = messages
+        .filter((msg) => msg.chatContext === 'public' && msg.type === 'text')
+        .slice(-5);
 
-      const prompt = `Based on the following chat conversation, suggest a concise and relevant reply. Keep it under 100 words:\n\n${chatHistoryText}\n\nSuggested Reply:`;
+      const chatHistoryText = lastPublicMessages
+        .map(
+          (msg) =>
+            `${msg.senderId === userId ? 'You' : `User ${generateDisplayId(msg.senderId)}`}: ${msg.content}`
+        )
+        .join('\n');
 
-      let chatHistory = [];
-      chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-      const payload = { contents: chatHistory };
-      const apiKey = "";
+      const prompt = `Based on the following chat, suggest a short reply:\n\n${chatHistoryText}\n\nSuggested Reply:`;
+
+      const apiKey = ''; // Add your Gemini API key if needed
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
       });
 
       const result = await response.json();
+      const reply =
+        result?.candidates?.[0]?.content?.parts?.[0]?.text || 'No suggestion available.';
 
-      if (result.candidates && result.candidates.length > 0 &&
-          result.candidates[0].content && result.candidates[0].content.parts &&
-          result.candidates[0].content.parts.length > 0) {
-        const text = result.candidates[0].content.parts[0].text;
-
-        await (await import('firebase/firestore')).addDoc(
-          (await import('firebase/firestore')).collection(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/public/data/chatMessages`),
-          {
-            senderId: 'gemini-assistant',
-            type: 'text',
-            content: text.trim(),
-            timestamp: (await import('firebase/firestore')).serverTimestamp(),
-            chatContext: 'public',
-          }
-        );
-      } else {
-        console.warn("Gemini API did not return a valid response structure.");
-        setError("Gemini could not generate a reply.");
-      }
+      setMessages((prev) => [
+        ...prev,
+        { senderId: 'gemini-assistant', type: 'text', content: reply.trim(), chatContext: 'public' },
+      ]);
     } catch (err) {
-      console.error("Error calling Gemini API:", err);
-      setError("Failed to get a reply from Gemini.");
+      console.error('Gemini error:', err);
+      setError('Failed to fetch AI reply.');
     } finally {
       setIsGeneratingReply(false);
     }
   };
 
-  // Handle emoji selection
   const handleEmojiSelect = (emoji) => {
-    setNewMessage((prevMsg) => prevMsg + emoji);
-    setShowEmojiPicker(false); // Close picker after selection
+    setNewMessage((prev) => prev + emoji);
+    setShowEmojiPicker(false);
   };
 
-  // Wrapper for toggleVoiceInput to pass necessary states
   const toggleVoiceInput = () => {
     voiceInputToggleFunction({
       recognitionRef,
       setIsListening,
       setNewMessage,
-      setError
+      setError,
     });
   };
 
-  // Render loading or error states
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="text-xl text-gray-700 animate-pulse">Loading chat...</div>
-      </div>
-    );
-  }
-
+  // Error screen
   if (error) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-red-100 text-red-700 p-4 rounded-lg animate-fade-in">
@@ -163,7 +118,7 @@ const App = () => {
     );
   }
 
-  // Render selection screen
+  // Selection screen
   if (chatMode === 'selection') {
     return (
       <SelectionScreen
@@ -179,7 +134,7 @@ const App = () => {
     );
   }
 
-  // Render chat interface
+  // Chat interface
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-blue-100 to-purple-100 font-sans antialiased animate-gradient-shift">
       <ChatInterface
@@ -199,10 +154,10 @@ const App = () => {
         showEmojiPicker={showEmojiPicker}
         setShowEmojiPicker={setShowEmojiPicker}
         isListening={isListening}
-        toggleVoiceInput={toggleVoiceInput} // Pass the wrapper function
+        toggleVoiceInput={toggleVoiceInput}
         handleEmojiSelect={handleEmojiSelect}
-        emojis={emojis} // Pass emojis array
-        messagesEndRef={messagesEndRef} // Pass the ref
+        emojis={emojis}
+        messagesEndRef={messagesEndRef}
       />
       {showShareModal && (
         <ShareModal
