@@ -7,6 +7,9 @@ export const toggleVoiceInput = ({ recognitionRef, setIsListening, setNewMessage
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+  // Local variable to track listening state
+  let isListening = false;
+
   if (!recognitionRef.current) {
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.continuous = false; // Listen for a single phrase
@@ -14,6 +17,7 @@ export const toggleVoiceInput = ({ recognitionRef, setIsListening, setNewMessage
     recognitionRef.current.lang = 'en-US'; // Set language
 
     recognitionRef.current.onstart = () => {
+      isListening = true;
       setIsListening(true);
       setNewMessage(''); // Clear current message when starting voice input
       setError(null); // Clear any previous errors
@@ -22,23 +26,27 @@ export const toggleVoiceInput = ({ recognitionRef, setIsListening, setNewMessage
     recognitionRef.current.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setNewMessage(transcript);
+      isListening = false;
       setIsListening(false);
     };
 
     recognitionRef.current.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
       setError(`Voice input error: ${event.error}. Please try again.`);
+      isListening = false;
       setIsListening(false);
     };
 
     recognitionRef.current.onend = () => {
+      isListening = false;
       setIsListening(false);
     };
   }
 
-  if (isListening) { // If currently listening, stop
+  // Start or stop based on current state
+  if (isListening) {
     recognitionRef.current.stop();
-  } else { // Otherwise, start
+  } else {
     recognitionRef.current.start();
   }
 };
