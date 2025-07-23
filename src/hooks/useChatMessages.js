@@ -1,43 +1,22 @@
-import { useEffect } from 'react';
-import { collection, query, onSnapshot, where } from 'firebase/firestore';
-import { getDuoChatContext } from '../utils/chatUtils'; // Import utility
+import { useState, useEffect } from "react";
 
-export const useChatMessages = (db, userId, chatMode, duoPartnerId, setMessages, messagesEndRef, setError) => {
+export default function useChatMessages() {
+  const [messages, setMessages] = useState(() => {
+    // Load saved messages from localStorage
+    const saved = localStorage.getItem("chatMessages");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const sendMessage = (text, sender = "You") => {
+    const newMessage = { id: Date.now(), sender, text };
+    const updatedMessages = [...messages, newMessage];
+    setMessages(updatedMessages);
+    localStorage.setItem("chatMessages", JSON.stringify(updatedMessages));
+  };
+
   useEffect(() => {
-    if (db && userId && chatMode !== 'selection') {
-      const messagesCollectionRef = collection(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/public/data/chatMessages`);
-      let q;
+    localStorage.setItem("chatMessages", JSON.stringify(messages));
+  }, [messages]);
 
-      if (chatMode === 'public') {
-        q = query(messagesCollectionRef, where('chatContext', '==', 'public'));
-      } else if (chatMode === 'duo' && duoPartnerId) {
-        const chatContextId = getDuoChatContext(userId, duoPartnerId);
-        q = query(messagesCollectionRef, where('chatContext', '==', chatContextId));
-      } else {
-        setMessages([]);
-        return;
-      }
-
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const fetchedMessages = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        fetchedMessages.sort((a, b) => {
-          const timeA = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : 0;
-          const timeB = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : 0;
-          return timeA - timeB;
-        });
-        setMessages(fetchedMessages);
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, (err) => {
-        console.error("Error fetching messages:", err);
-        setError("Failed to load messages.");
-      });
-
-      return () => unsubscribe();
-    } else if (chatMode === 'selection') {
-      setMessages([]);
-    }
-  }, [db, userId, chatMode, duoPartnerId, setMessages, messagesEndRef, setError]);
-};
+  return { messages, sendMessage };
+}
