@@ -12,16 +12,16 @@ export const useFirebase = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const initializeFirebase = async () => {
+    const init = async () => {
       try {
-        // Replace with your Firebase keys or use .env for security
-        const firebaseConfig = window.firebaseConfig || {
-          apiKey: "YOUR_API_KEY",
-          authDomain: "YOUR_PROJECT.firebaseapp.com",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_PROJECT.appspot.com",
-          messagingSenderId: "YOUR_SENDER_ID",
-          appId: "YOUR_APP_ID"
+        // Replace with your Firebase config
+        const firebaseConfig = {
+          apiKey: process.env.REACT_APP_FIREBASE_KEY,
+          authDomain: process.env.REACT_APP_FIREBASE_DOMAIN,
+          projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+          storageBucket: process.env.REACT_APP_FIREBASE_STORAGE,
+          messagingSenderId: process.env.REACT_APP_FIREBASE_SENDER,
+          appId: process.env.REACT_APP_FIREBASE_APPID
         };
 
         const app = initializeApp(firebaseConfig);
@@ -34,17 +34,15 @@ export const useFirebase = () => {
         await signInAnonymously(firebaseAuth);
 
         onAuthStateChanged(firebaseAuth, (user) => {
-          setUserId(user ? user.uid : crypto.randomUUID());
+          setUserId(user?.uid || crypto.randomUUID());
           setLoading(false);
         });
       } catch (err) {
-        console.error("Firebase init error:", err);
-        setError("Chat initialization failed.");
+        setError("Firebase initialization failed.");
         setLoading(false);
       }
     };
-
-    initializeFirebase();
+    init();
   }, []);
 
   return { db, auth, userId, loading, error, setError };
