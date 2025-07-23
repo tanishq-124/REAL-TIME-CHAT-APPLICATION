@@ -1,17 +1,9 @@
-// Function to copy text to clipboard with visual feedback
-export const copyToClipboard = (text, messageType, setCopiedMessage) => {
-  const textarea = document.createElement('textarea');
-  textarea.value = text;
-  document.body.appendChild(textarea);
-  textarea.select();
+// src/utils/clipboardUtils.js
+export const copyToClipboard = async (text) => {
   try {
-    document.execCommand('copy');
-    setCopiedMessage(`${messageType} copied!`);
-    setTimeout(() => setCopiedMessage(''), 2000);
-  } catch (err) {
-    console.error('Failed to copy text: ', err);
-    setCopiedMessage('Copy failed!');
-    setTimeout(() => setCopiedMessage(''), 2000);
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
   }
-  document.body.removeChild(textarea);
 };
