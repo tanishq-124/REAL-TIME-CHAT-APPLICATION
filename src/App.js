@@ -5,7 +5,7 @@ import SelectionScreen from './components/SelectionScreen';
 import ChatInterface from './components/ChatInterface';
 import ShareModal from './components/ShareModal';
 import { useFirebase } from './hooks/useFirebase';
-import { useChatMessages } from './hooks/useChatMessages';
+import useChatMessages from './hooks/useChatMessages';
 import { generateDisplayId, getDuoChatContext } from './utils/chatUtils';
 import { copyToClipboard } from './utils/clipboardUtils';
 import { toggleVoiceInput as voiceInputToggleFunction } from './utils/speechRecognition'; // Renamed import
