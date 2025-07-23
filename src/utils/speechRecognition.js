@@ -1,4 +1,6 @@
-// Handles voice input using Web Speech API
+// src/utils/speechRecognition.js
+let isListening = false;
+
 export const toggleVoiceInput = ({ recognitionRef, setIsListening, setNewMessage, setError }) => {
   if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
     setError("Speech recognition is not supported in your browser.");
@@ -7,20 +9,17 @@ export const toggleVoiceInput = ({ recognitionRef, setIsListening, setNewMessage
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  // Local variable to track listening state
-  let isListening = false;
-
   if (!recognitionRef.current) {
     recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = false; // Listen for a single phrase
-    recognitionRef.current.interimResults = false; // Only return final results
-    recognitionRef.current.lang = 'en-US'; // Set language
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = false;
+    recognitionRef.current.lang = 'en-US';
 
     recognitionRef.current.onstart = () => {
       isListening = true;
       setIsListening(true);
-      setNewMessage(''); // Clear current message when starting voice input
-      setError(null); // Clear any previous errors
+      setNewMessage('');
+      setError(null);
     };
 
     recognitionRef.current.onresult = (event) => {
@@ -31,8 +30,7 @@ export const toggleVoiceInput = ({ recognitionRef, setIsListening, setNewMessage
     };
 
     recognitionRef.current.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
-      setError(`Voice input error: ${event.error}. Please try again.`);
+      setError(`Voice input error: ${event.error}`);
       isListening = false;
       setIsListening(false);
     };
@@ -43,7 +41,6 @@ export const toggleVoiceInput = ({ recognitionRef, setIsListening, setNewMessage
     };
   }
 
-  // Start or stop based on current state
   if (isListening) {
     recognitionRef.current.stop();
   } else {
