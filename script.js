@@ -1,9 +1,27 @@
-// Theme Toggle
-document.getElementById("themeToggle").addEventListener("click", () => {
+// ==================== THEME TOGGLE ====================
+const themeToggle = document.getElementById("themeToggle");
+themeToggle.addEventListener("click", () => {
   document.body.classList.toggle("dark");
 });
 
-// Emoji Picker
+// ==================== PARTICLES ====================
+tsParticles.load("tsparticles", {
+  particles: {
+    number: { value: 60 },
+    color: { value: ["#4facfe", "#00f2fe", "#ff6ec7", "#fddb92"] },
+    shape: { type: "circle" },
+    opacity: { value: 0.6 },
+    size: { value: 3 },
+    move: { enable: true, speed: 1 },
+    links: { enable: true, color: "#999", distance: 150, opacity: 0.4 }
+  },
+  interactivity: {
+    events: { onHover: { enable: true, mode: "repulse" } },
+    modes: { repulse: { distance: 100, duration: 0.4 } }
+  }
+});
+
+// ==================== EMOJI PICKER ====================
 const emojiBtn = document.getElementById("emojiBtn");
 const emojiPicker = document.getElementById("emojiPicker");
 const emojis = ["😀","😂","😍","👍","❤️","🔥","😎","🎉","😢"];
@@ -20,7 +38,7 @@ emojiBtn.addEventListener("click", () => {
   emojiPicker.style.display = emojiPicker.style.display === "block" ? "none" : "block";
 });
 
-// Chat Functionality
+// ==================== CHAT FUNCTIONALITY ====================
 const chatWindow = document.getElementById("chatWindow");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
@@ -40,11 +58,14 @@ document.querySelectorAll(".chat-item").forEach(item => {
 
 function renderMessages() {
   chatWindow.innerHTML = "";
-  if (!currentUser) return;
+  if (!currentUser) {
+    chatWindow.innerHTML = `<p class="prompt glow-text">Select a chat to begin</p>`;
+    return;
+  }
   const messages = chats[currentUser] || [];
   messages.forEach((msg, index) => {
     const div = document.createElement("div");
-    div.classList.add("message");
+    div.classList.add("message", msg.sender === "You" ? "sent" : "received");
     div.innerHTML = `
       <strong>${msg.sender}:</strong> ${msg.text} 
       <small>${msg.time} ${msg.read ? "✔✔" : ""}</small>
@@ -101,19 +122,17 @@ function simulateReply() {
   }, 1500);
 }
 
-// Message Actions
+// ==================== MESSAGE ACTIONS ====================
 window.addReaction = (index, reaction) => {
   chats[currentUser][index].reactions.push(reaction);
   localStorage.setItem("chats", JSON.stringify(chats));
   renderMessages();
 };
-
 window.deleteMessage = (index) => {
   chats[currentUser].splice(index, 1);
   localStorage.setItem("chats", JSON.stringify(chats));
   renderMessages();
 };
-
 window.editMessage = (index) => {
   const newText = prompt("Edit message:", chats[currentUser][index].text);
   if (newText !== null) {
@@ -123,17 +142,24 @@ window.editMessage = (index) => {
   }
 };
 
-// Particles
-tsParticles.load("tsparticles", {
-  particles: {
-    number: { value: 50 },
-    size: { value: 3 },
-    move: { enable: true, speed: 1 },
-    color: { value: "#999" },
-    links: { enable: true, distance: 150, color: "#999", opacity: 0.4 }
-  },
-  interactivity: {
-    events: { onHover: { enable: true, mode: "repulse" } },
-    modes: { repulse: { distance: 100, duration: 0.4 } }
+// ==================== PROFILE & TOOLS ====================
+const toolsBtn = document.getElementById("toolsBtn");
+const toolsPanel = document.getElementById("toolsPanel");
+const closeTools = document.getElementById("closeTools");
+const saveProfile = document.getElementById("saveProfile");
+const clearChat = document.getElementById("clearChat");
+
+toolsBtn.addEventListener("click", () => toolsPanel.classList.add("open"));
+closeTools.addEventListener("click", () => toolsPanel.classList.remove("open"));
+
+saveProfile.addEventListener("click", () => {
+  alert(`Profile saved!\nName: ${document.getElementById("profileName").value}`);
+});
+
+clearChat.addEventListener("click", () => {
+  if (currentUser) {
+    chats[currentUser] = [];
+    localStorage.setItem("chats", JSON.stringify(chats));
+    renderMessages();
   }
 });
