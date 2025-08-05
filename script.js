@@ -4,25 +4,21 @@ themeToggle.addEventListener("click", () => {
   document.body.classList.toggle("dark");
 });
 
-// Particles (Magical Floating Elements)
+// Floating Particles
 tsParticles.load("tsparticles", {
   particles: {
-    number: { value: 50 },
+    number: { value: 60 },
     shape: { type: ["circle", "star", "polygon"] },
     color: { value: ["#4facfe", "#00f2fe", "#ff6ec7"] },
     opacity: { value: 0.6 },
     size: { value: { min: 2, max: 5 } },
-    move: { enable: true, speed: 1.5, direction: "none", outModes: "out" },
+    move: { enable: true, speed: 1.2 },
     rotate: { value: 45, animation: { enable: true, speed: 5 } },
     links: { enable: true, color: "#555", distance: 150, opacity: 0.3 }
-  },
-  interactivity: {
-    events: { onHover: { enable: true, mode: "repulse" } },
-    modes: { repulse: { distance: 100, duration: 0.4 } }
   }
 });
 
-// Chat Functionality
+// Chat Logic
 const chatWindow = document.getElementById("chatWindow");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
@@ -43,17 +39,13 @@ document.querySelectorAll(".chat-item").forEach(item => {
 function renderMessages() {
   chatWindow.innerHTML = "";
   if (!currentUser) {
-    chatWindow.innerHTML = `<p class="prompt glow-text">Select a chat to begin</p>`;
+    chatWindow.innerHTML = `<p class="prompt glow-text">✨ Select a chat to begin ✨</p>`;
     return;
   }
   const messages = chats[currentUser] || [];
-  messages.forEach((msg, index) => {
+  messages.forEach(msg => {
     const div = document.createElement("div");
-    div.classList.add("message", msg.sender === "You" ? "sent" : "received");
-    div.innerHTML = `
-      <strong>${msg.sender}:</strong> ${msg.text}
-      <small>${msg.time}</small>
-    `;
+    div.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text} <small>${msg.time}</small>`;
     chatWindow.appendChild(div);
   });
   chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -61,11 +53,7 @@ function renderMessages() {
 
 function sendMessage() {
   if (!currentUser || !messageInput.value.trim()) return;
-  const newMessage = {
-    text: messageInput.value,
-    sender: "You",
-    time: new Date().toLocaleTimeString()
-  };
+  const newMessage = { text: messageInput.value, sender: "You", time: new Date().toLocaleTimeString() };
   chats[currentUser] = chats[currentUser] || [];
   chats[currentUser].push(newMessage);
   localStorage.setItem("chats", JSON.stringify(chats));
@@ -81,11 +69,7 @@ function simulateReply() {
   typingIndicator.style.display = "block";
   setTimeout(() => {
     typingIndicator.style.display = "none";
-    const reply = {
-      text: "Auto Reply",
-      sender: "Bot",
-      time: new Date().toLocaleTimeString()
-    };
+    const reply = { text: "Auto Reply", sender: "Bot", time: new Date().toLocaleTimeString() };
     chats[currentUser].push(reply);
     localStorage.setItem("chats", JSON.stringify(chats));
     renderMessages();
@@ -93,16 +77,10 @@ function simulateReply() {
 }
 
 // Tools Panel
-const toolsBtn = document.getElementById("toolsBtn");
-const toolsPanel = document.getElementById("toolsPanel");
-const closeTools = document.getElementById("closeTools");
-const saveProfile = document.getElementById("saveProfile");
-const clearChat = document.getElementById("clearChat");
-
-toolsBtn.addEventListener("click", () => toolsPanel.classList.add("open"));
-closeTools.addEventListener("click", () => toolsPanel.classList.remove("open"));
-saveProfile.addEventListener("click", () => alert("Profile saved!"));
-clearChat.addEventListener("click", () => {
+document.getElementById("toolsBtn").addEventListener("click", () => document.getElementById("toolsPanel").classList.add("open"));
+document.getElementById("closeTools").addEventListener("click", () => document.getElementById("toolsPanel").classList.remove("open"));
+document.getElementById("saveProfile").addEventListener("click", () => alert("Profile saved!"));
+document.getElementById("clearChat").addEventListener("click", () => {
   if (currentUser) {
     chats[currentUser] = [];
     localStorage.setItem("chats", JSON.stringify(chats));
