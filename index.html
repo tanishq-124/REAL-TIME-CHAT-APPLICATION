@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WhatsApp-Style Chat</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3/tsparticles.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div id="tsparticles"></div>
+
+  <!-- Theme Toggle -->
+  <button id="themeToggle"><i class="fas fa-moon"></i></button>
+
+  <!-- Layout -->
+  <div class="main-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header"><h2>Chats</h2></div>
+      <div class="chat-list">
+        <div class="chat-item" data-user="User 1" data-status="Online" data-img="https://via.placeholder.com/40">
+          <img src="https://via.placeholder.com/40"><div><strong>User 1</strong><p>Hey there!</p></div>
+        </div>
+        <div class="chat-item" data-user="User 2" data-status="Last seen 5 mins ago" data-img="https://via.placeholder.com/40">
+          <img src="https://via.placeholder.com/40"><div><strong>User 2</strong><p>How's it going?</p></div>
+        </div>
+        <div class="chat-item" data-user="User 3" data-status="Last seen yesterday" data-img="https://via.placeholder.com/40">
+          <img src="https://via.placeholder.com/40"><div><strong>User 3</strong><p>See you soon!</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Section -->
+    <div class="chat-section">
+      <div class="chat-header">
+        <img id="chatUserImg" src="https://via.placeholder.com/40">
+        <div><h3 id="chatUserName">Select a Chat</h3><p id="chatStatus">Status</p></div>
+      </div>
+
+      <div id="chatWindow" class="chat-window"></div>
+      <div id="typingIndicator" class="typing-indicator" style="display:none;">Bot is typing...</div>
+
+      <div class="message-input">
+        <button id="emojiBtn"><i class="far fa-smile"></i></button>
+        <div id="emojiPicker" class="emoji-picker"></div>
+        <input type="text" id="messageInput" placeholder="Type a message...">
+        <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin"></i></a>
+    <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+    <a href="https://github.com" target="_blank"><i class="fab fa-github"></i></a>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
