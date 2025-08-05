@@ -1,19 +1,20 @@
-// ==================== THEME TOGGLE ====================
+// Theme Toggle
 const themeToggle = document.getElementById("themeToggle");
 themeToggle.addEventListener("click", () => {
   document.body.classList.toggle("dark");
 });
 
-// ==================== PARTICLES ====================
+// Particles (Magical Floating Elements)
 tsParticles.load("tsparticles", {
   particles: {
-    number: { value: 60 },
-    color: { value: ["#4facfe", "#00f2fe", "#ff6ec7", "#fddb92"] },
-    shape: { type: "circle" },
+    number: { value: 50 },
+    shape: { type: ["circle", "star", "polygon"] },
+    color: { value: ["#4facfe", "#00f2fe", "#ff6ec7"] },
     opacity: { value: 0.6 },
-    size: { value: 3 },
-    move: { enable: true, speed: 1 },
-    links: { enable: true, color: "#999", distance: 150, opacity: 0.4 }
+    size: { value: { min: 2, max: 5 } },
+    move: { enable: true, speed: 1.5, direction: "none", outModes: "out" },
+    rotate: { value: 45, animation: { enable: true, speed: 5 } },
+    links: { enable: true, color: "#555", distance: 150, opacity: 0.3 }
   },
   interactivity: {
     events: { onHover: { enable: true, mode: "repulse" } },
@@ -21,24 +22,7 @@ tsParticles.load("tsparticles", {
   }
 });
 
-// ==================== EMOJI PICKER ====================
-const emojiBtn = document.getElementById("emojiBtn");
-const emojiPicker = document.getElementById("emojiPicker");
-const emojis = ["😀","😂","😍","👍","❤️","🔥","😎","🎉","😢"];
-emojis.forEach(e => {
-  const span = document.createElement("span");
-  span.textContent = e;
-  span.addEventListener("click", () => {
-    document.getElementById("messageInput").value += e;
-    emojiPicker.style.display = "none";
-  });
-  emojiPicker.appendChild(span);
-});
-emojiBtn.addEventListener("click", () => {
-  emojiPicker.style.display = emojiPicker.style.display === "block" ? "none" : "block";
-});
-
-// ==================== CHAT FUNCTIONALITY ====================
+// Chat Functionality
 const chatWindow = document.getElementById("chatWindow");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
@@ -67,18 +51,8 @@ function renderMessages() {
     const div = document.createElement("div");
     div.classList.add("message", msg.sender === "You" ? "sent" : "received");
     div.innerHTML = `
-      <strong>${msg.sender}:</strong> ${msg.text} 
-      <small>${msg.time} ${msg.read ? "✔✔" : ""}</small>
-      <div class="actions">
-        <button onclick="editMessage(${index})"><i class="fas fa-edit"></i></button>
-        <button onclick="deleteMessage(${index})"><i class="fas fa-trash"></i></button>
-      </div>
-      <div>
-        <button onclick="addReaction(${index}, '👍')">👍</button>
-        <button onclick="addReaction(${index}, '❤️')">❤️</button>
-        <button onclick="addReaction(${index}, '😂')">😂</button>
-      </div>
-      ${msg.reactions && msg.reactions.length ? `<div>${msg.reactions.join(" ")}</div>` : ""}
+      <strong>${msg.sender}:</strong> ${msg.text}
+      <small>${msg.time}</small>
     `;
     chatWindow.appendChild(div);
   });
@@ -90,9 +64,7 @@ function sendMessage() {
   const newMessage = {
     text: messageInput.value,
     sender: "You",
-    time: new Date().toLocaleTimeString(),
-    read: false,
-    reactions: []
+    time: new Date().toLocaleTimeString()
   };
   chats[currentUser] = chats[currentUser] || [];
   chats[currentUser].push(newMessage);
@@ -112,9 +84,7 @@ function simulateReply() {
     const reply = {
       text: "Auto Reply",
       sender: "Bot",
-      time: new Date().toLocaleTimeString(),
-      read: true,
-      reactions: []
+      time: new Date().toLocaleTimeString()
     };
     chats[currentUser].push(reply);
     localStorage.setItem("chats", JSON.stringify(chats));
@@ -122,27 +92,7 @@ function simulateReply() {
   }, 1500);
 }
 
-// ==================== MESSAGE ACTIONS ====================
-window.addReaction = (index, reaction) => {
-  chats[currentUser][index].reactions.push(reaction);
-  localStorage.setItem("chats", JSON.stringify(chats));
-  renderMessages();
-};
-window.deleteMessage = (index) => {
-  chats[currentUser].splice(index, 1);
-  localStorage.setItem("chats", JSON.stringify(chats));
-  renderMessages();
-};
-window.editMessage = (index) => {
-  const newText = prompt("Edit message:", chats[currentUser][index].text);
-  if (newText !== null) {
-    chats[currentUser][index].text = newText;
-    localStorage.setItem("chats", JSON.stringify(chats));
-    renderMessages();
-  }
-};
-
-// ==================== PROFILE & TOOLS ====================
+// Tools Panel
 const toolsBtn = document.getElementById("toolsBtn");
 const toolsPanel = document.getElementById("toolsPanel");
 const closeTools = document.getElementById("closeTools");
@@ -151,11 +101,7 @@ const clearChat = document.getElementById("clearChat");
 
 toolsBtn.addEventListener("click", () => toolsPanel.classList.add("open"));
 closeTools.addEventListener("click", () => toolsPanel.classList.remove("open"));
-
-saveProfile.addEventListener("click", () => {
-  alert(`Profile saved!\nName: ${document.getElementById("profileName").value}`);
-});
-
+saveProfile.addEventListener("click", () => alert("Profile saved!"));
 clearChat.addEventListener("click", () => {
   if (currentUser) {
     chats[currentUser] = [];
