@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Magical Chat App</title>
+  <title>Advanced Magical Chat</title>
   <link rel="stylesheet" href="style.css"/>
   <script src="https://cdn.jsdelivr.net/npm/tsparticles@3/tsparticles.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="dark">
+  <!-- Animated Background -->
   <div id="tsparticles"></div>
 
   <!-- Theme Toggle -->
-  <button id="themeToggle"><i class="fas fa-sun"></i></button>
+  <button id="themeToggle"><i class="fas fa-moon"></i></button>
 
   <!-- Main Container -->
   <div class="main-container">
-    <!-- Sidebar (Chats) -->
+    <!-- Sidebar -->
     <div class="magical-box sidebar">
       <div class="sidebar-header">
         <h2 class="gradient-text">Chats</h2>
@@ -43,12 +44,10 @@
           <p id="chatStatus">Status</p>
         </div>
       </div>
-
       <div id="chatWindow" class="chat-window">
-        <p class="prompt glow-text">Select a chat to begin</p>
+        <p class="prompt glow-text">✨ Select a chat to begin ✨</p>
       </div>
-      <div id="typingIndicator" class="typing-indicator" style="display:none;">Bot is typing...</div>
-
+      <div id="typingIndicator" class="typing-indicator">Bot is typing...</div>
       <div class="message-input">
         <button id="emojiBtn"><i class="far fa-smile"></i></button>
         <div id="emojiPicker" class="emoji-picker"></div>
@@ -58,7 +57,7 @@
     </div>
   </div>
 
-  <!-- Profile & Tools Panel -->
+  <!-- Tools Panel -->
   <div id="toolsPanel" class="tools-panel">
     <h3 class="gradient-text">Profile & Tools</h3>
     <img id="profileImg" src="https://via.placeholder.com/80">
@@ -74,7 +73,7 @@
     <p class="developer glow-text">Made by Tanishq Agrawal</p>
     <div>
       <a href="https://www.linkedin.com/in/tanishq-agrawal-91a505335" target="_blank"><i class="fab fa-linkedin"></i></a>
-      <a href="[Instagram Profile Link]" target="_blank"><i class="fab fa-instagram"></i></a>
+      <a href="https://www.instagram.com/tanishq_agrawal_11?igsh=YmtibTEwcDFsd3No" target="_blank"><i class="fab fa-instagram"></i></a>
       <a href="https://github.com/tanishq-124" target="_blank"><i class="fab fa-github"></i></a>
     </div>
   </div>
