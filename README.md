@@ -61,3 +61,4 @@ Created by **Tanishq Agrawal**
 5. Customize your profile or clear chats from the tools panel.  
 
 
+<img width="960" height="590" alt="Image" src="https://github.com/user-attachments/assets/51d140ee-4d6f-4cc0-9825-900a7f446b2a" />
