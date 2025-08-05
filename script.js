@@ -1,20 +1,18 @@
 // Theme Toggle
-const themeToggle = document.getElementById("themeToggle");
-themeToggle.addEventListener("click", () => {
+document.getElementById("themeToggle").addEventListener("click", () => {
   document.body.classList.toggle("dark");
 });
 
-// Floating Particles
+// Golden Background Particles
 tsParticles.load("tsparticles", {
   particles: {
-    number: { value: 60 },
-    shape: { type: ["circle", "star", "polygon"] },
-    color: { value: ["#4facfe", "#00f2fe", "#ff6ec7"] },
-    opacity: { value: 0.6 },
-    size: { value: { min: 2, max: 5 } },
-    move: { enable: true, speed: 1.2 },
-    rotate: { value: 45, animation: { enable: true, speed: 5 } },
-    links: { enable: true, color: "#555", distance: 150, opacity: 0.3 }
+    number: { value: 50 },
+    shape: { type: ["circle", "star"] },
+    color: { value: ["#ffd700", "#ffae42"] },
+    opacity: { value: 0.7 },
+    size: { value: { min: 2, max: 4 } },
+    move: { enable: true, speed: 1.5 },
+    links: { enable: false }
   }
 });
 
@@ -26,24 +24,25 @@ const typingIndicator = document.getElementById("typingIndicator");
 let currentUser = null;
 let chats = JSON.parse(localStorage.getItem("chats")) || {};
 
+// Chat selection
 document.querySelectorAll(".chat-item").forEach(item => {
   item.addEventListener("click", () => {
     currentUser = item.dataset.user;
     document.getElementById("chatUserName").textContent = currentUser;
     document.getElementById("chatStatus").textContent = item.dataset.status;
-    document.getElementById("chatUserImg").src = item.dataset.img;
+    document.getElementById("chatUserImg").textContent = currentUser[0];
     renderMessages();
   });
 });
 
+// Render messages
 function renderMessages() {
   chatWindow.innerHTML = "";
   if (!currentUser) {
     chatWindow.innerHTML = `<p class="prompt glow-text">✨ Select a chat to begin ✨</p>`;
     return;
   }
-  const messages = chats[currentUser] || [];
-  messages.forEach(msg => {
+  (chats[currentUser] || []).forEach(msg => {
     const div = document.createElement("div");
     div.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text} <small>${msg.time}</small>`;
     chatWindow.appendChild(div);
@@ -51,6 +50,7 @@ function renderMessages() {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
+// Send messages
 function sendMessage() {
   if (!currentUser || !messageInput.value.trim()) return;
   const newMessage = { text: messageInput.value, sender: "You", time: new Date().toLocaleTimeString() };
@@ -65,6 +65,7 @@ function sendMessage() {
 sendBtn.addEventListener("click", sendMessage);
 messageInput.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
 
+// Simulated reply
 function simulateReply() {
   typingIndicator.style.display = "block";
   setTimeout(() => {
@@ -75,6 +76,26 @@ function simulateReply() {
     renderMessages();
   }, 1500);
 }
+
+// Emoji Picker
+const emojiBtn = document.getElementById("emojiBtn");
+const emojiPicker = document.getElementById("emojiPicker");
+const emojis = ["😀","😂","😍","😎","👍","🔥","❤️","🎉"];
+
+emojiBtn.addEventListener("click", () => {
+  emojiPicker.style.display = emojiPicker.style.display === "block" ? "none" : "block";
+  if (!emojiPicker.innerHTML) {
+    emojis.forEach(e => {
+      const span = document.createElement("span");
+      span.textContent = e;
+      span.addEventListener("click", () => {
+        messageInput.value += e;
+        emojiPicker.style.display = "none";
+      });
+      emojiPicker.appendChild(span);
+    });
+  }
+});
 
 // Tools Panel
 document.getElementById("toolsBtn").addEventListener("click", () => document.getElementById("toolsPanel").classList.add("open"));
